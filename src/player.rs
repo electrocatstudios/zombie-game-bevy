@@ -6,6 +6,7 @@ use std::path::Path;
 use crate::{GAME_WIDTH,GAME_HEIGHT};
 use crate::game::*;
 use crate::utils::*;
+use crate::bullet::*;
 
 #[derive(Component)]
 pub struct Player {
@@ -19,27 +20,27 @@ pub fn create_player(
     texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
 ){
     let texture_path = Path::new("images").join("player").join("player.png");
-        let texture_handle = asset_server.load(texture_path);
-        let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(200.0, 200.0), 4, 1, None, None);
-        let texture_atlas_handle = texture_atlases.add(texture_atlas);
-        let animation_indices = AnimationIndices { first: 0, last: 3 };
+    let texture_handle = asset_server.load(texture_path);
+    let texture_atlas =
+        TextureAtlas::from_grid(texture_handle, Vec2::new(200.0, 200.0), 4, 1, None, None);
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+    let animation_indices = AnimationIndices { first: 0, last: 3 };
 
-        commands.spawn((
-            SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle,
-                sprite: TextureAtlasSprite::new(animation_indices.first),
-                transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(0.5)),
-                ..default()
-            },
-            animation_indices,
-            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-        ))
-        .insert(Player{
-            loc: Vec2::new(0.0,0.0),
-            mouse: Vec2::new(0.0,0.0),
-        })
-        .insert(OnGameScreen);
+    commands.spawn((
+        SpriteSheetBundle {
+            texture_atlas: texture_atlas_handle,
+            sprite: TextureAtlasSprite::new(animation_indices.first),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(0.5)),
+            ..default()
+        },
+        animation_indices,
+        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+    ))
+    .insert(Player{
+        loc: Vec2::new(0.0,0.0),
+        mouse: Vec2::new(0.0,0.0),
+    })
+    .insert(OnGameScreen);
 }
 
 const PLAYER_MOVE_SPEED: f32 = 150.0;
@@ -96,5 +97,44 @@ pub fn track_mouse(
         player.mouse.x = ev.position.x - (GAME_WIDTH/2.0);
         player.mouse.y = -1.0 * (ev.position.y - (GAME_HEIGHT/2.0));
         // println!("Standing at: {:?}, Pointing at: {:?}", player.loc, player.mouse);
+    }
+}
+
+pub fn fire_controller(
+    mut commands: Commands,
+    buttons: Res<Input<MouseButton>>,
+    asset_server: Res<AssetServer>,
+    mut players: Query<&mut Player>
+){
+    if players.is_empty() {
+        return;
+    }
+
+    let player = players.single();
+
+    if buttons.just_pressed(MouseButton::Left) {
+        // Get player location and spawn a new bullet
+        let direction = player.loc - player.mouse; 
+        let mut angle_to_target =  normalize_angle(
+            direction.y.atan2(direction.x)
+        );
+
+        let texture_path = Path::new("images").join("objects").join("bullet.png");
+        let texture_handle = asset_server.load(texture_path);
+    
+        // println!("Fire.... pos: {:?}, angle: {:?}",player.loc, angle_to_target);
+
+        commands.spawn((
+                SpriteBundle {
+                    texture: texture_handle,
+                    transform: Transform::from_xyz(player.loc.x, player.loc.y, 1.0).with_scale(Vec3::splat(1.0)),
+                    ..default()
+                },
+            )) 
+            .insert(Bullet{
+                angle: angle_to_target - (std::f32::consts::PI/2.0)
+            })
+            .insert(OnGameScreen);
+
     }
 }

@@ -1,8 +1,9 @@
 use bevy::{app::AppExit, prelude::*,sprite::MaterialMesh2dBundle}; 
 use std::path::Path;
 
-use super::{despawn_screen,MainGameState,menu::MenuState,player};
+use super::{despawn_screen,MainGameState,menu::MenuState,player,bullet};
 use std::vec::Vec;
+
 pub struct GamePlugin;
 
 use crate::utils::*;
@@ -17,6 +18,8 @@ impl Plugin for GamePlugin {
                 zombie_mover,
                 player::player_mover,
                 player::track_mouse,
+                player::fire_controller,
+                bullet::bullet_mover,
             ).run_if(in_state(MainGameState::Game)))
             .add_systems(OnExit(MainGameState::Game), despawn_screen::<OnGameScreen>);
     }
