@@ -4,6 +4,7 @@ use bevy::window::PresentMode;
 mod game;
 mod menu;
 mod player;
+mod utils;
 
 pub const GAME_WIDTH: f32 = 1280.0;
 pub const GAME_HEIGHT: f32 = 720.0;

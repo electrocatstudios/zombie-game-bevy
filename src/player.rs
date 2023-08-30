@@ -5,7 +5,7 @@ use std::path::Path;
 
 use crate::{GAME_WIDTH,GAME_HEIGHT};
 use crate::game::*;
-// use crate::OnGameScreen;
+use crate::utils::*;
 
 #[derive(Component)]
 pub struct Player {
@@ -42,7 +42,7 @@ pub fn create_player(
         .insert(OnGameScreen);
 }
 
-const PLAYER_MOVE_SPEED: f32 = 25.0;
+const PLAYER_MOVE_SPEED: f32 = 150.0;
 
 pub fn player_mover(
     time: Res<Time>,
@@ -76,12 +76,9 @@ pub fn player_mover(
 
     // Rotate to face the mouse cursor
     let direction = player.mouse - player.loc; 
-    let mut angle_to_target =  direction.y.atan2(direction.x); //(std::f32::consts::PI * 2.0) -
-    if angle_to_target < 0. {
-        angle_to_target += 2.0*std::f32::consts::PI;
-    }else if angle_to_target > std::f32::consts::PI*2.0{
-        angle_to_target -= std::f32::consts::PI*2.0;
-    }
+    let mut angle_to_target =  normalize_angle(
+        direction.y.atan2(direction.x)
+    );
 
     transform.rotation = Quat::from_rotation_z(angle_to_target + (std::f32::consts::PI/2.0));
 }

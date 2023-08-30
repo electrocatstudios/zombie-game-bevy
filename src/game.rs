@@ -5,6 +5,8 @@ use super::{despawn_screen,MainGameState,menu::MenuState,player};
 use std::vec::Vec;
 pub struct GamePlugin;
 
+use crate::utils::*;
+
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app
@@ -120,12 +122,9 @@ fn zombie_mover(
         
         // Calculate angle of rotation (plus fiddle factor)
         let direction = target - pos; 
-        let mut angle_to_target =  direction.y.atan2(direction.x); //(std::f32::consts::PI * 2.0) -
-        if angle_to_target < 0. {
-            angle_to_target += 2.0*std::f32::consts::PI;
-        }else if angle_to_target > std::f32::consts::PI*2.0{
-            angle_to_target -= std::f32::consts::PI*2.0;
-        }
+        let mut angle_to_target =  normalize_angle(
+            direction.y.atan2(direction.x)
+        );
 
         angle_to_target = angle_to_target + (std::f32::consts::PI/2.0); // Add 90 degrees because of image rotation
         transform.rotation = Quat::from_rotation_z(angle_to_target);
