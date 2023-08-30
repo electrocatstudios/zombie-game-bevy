@@ -84,6 +84,22 @@ fn game_setup(
     }
     
     player::create_player(&mut commands, &asset_server, &mut texture_atlases);
+
+    // Scenery and Background
+    {
+        let texture_path = Path::new("images").join("scenery").join("street_scene.png");
+        let texture_handle = asset_server.load(texture_path);
+        
+        commands.spawn((
+            SpriteBundle {
+                texture: texture_handle,
+                transform: Transform::from_xyz(0.0, 0.0, -1.0).with_scale(Vec3::splat(1.0)),
+                ..default()
+            },
+        ))
+        .insert(OnGameScreen);    
+    }
+
 }
 
 fn game_update(
