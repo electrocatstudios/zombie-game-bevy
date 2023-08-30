@@ -1,54 +1,35 @@
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::{prelude::*}; 
+use bevy::window::PresentMode;
+
+mod game;
+mod menu;
+
+#[derive(Clone, Eq, PartialEq, Debug, Hash, States, Default)]
+pub enum MainGameState {
+    #[default]
+    Menu,
+    Game,
+}
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Zombie Game".to_string(),
+                resolution: (1280.0, 720.0).into(),
+                present_mode: PresentMode::AutoVsync,
+                ..default()
+            }),
+            ..default()
+        }))
+        .add_state::<MainGameState>()
+        .add_plugins(menu::MenuPlugin)
         .run();
 }
 
-
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    commands.spawn(Camera2dBundle::default());
-
-    // Circle
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes.add(shape::Circle::new(50.).into()).into(),
-        material: materials.add(ColorMaterial::from(Color::PURPLE)),
-        transform: Transform::from_translation(Vec3::new(-150., 0., 0.)),
-        ..default()
-    });
-
-    // Rectangle
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: Color::rgb(0.25, 0.25, 0.75),
-            custom_size: Some(Vec2::new(50.0, 100.0)),
-            ..default()
-        },
-        transform: Transform::from_translation(Vec3::new(-50., 0., 0.)),
-        ..default()
-    });
-
-    // Quad
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes
-            .add(shape::Quad::new(Vec2::new(50., 100.)).into())
-            .into(),
-        material: materials.add(ColorMaterial::from(Color::LIME_GREEN)),
-        transform: Transform::from_translation(Vec3::new(50., 0., 0.)),
-        ..default()
-    });
-
-    // Hexagon
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes.add(shape::RegularPolygon::new(50., 6).into()).into(),
-        material: materials.add(ColorMaterial::from(Color::TURQUOISE)),
-        transform: Transform::from_translation(Vec3::new(150., 0., 0.)),
-        ..default()
-    });
+// Generic system that takes a component as a parameter, and will despawn all entities with that component
+fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
+    for entity in &to_despawn {
+        commands.entity(entity).despawn_recursive();
+    }
 }
