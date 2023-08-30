@@ -24,7 +24,8 @@ impl Plugin for MenuPlugin {
             .add_systems(
                 Update,
                 (menu_action,button_system).run_if(in_state(MainGameState::Menu)),
-            );
+            )
+            .add_systems(OnExit(MainGameState::Menu), despawn_screen::<OnMainMenuScreen>);
     }
 }
 
@@ -152,14 +153,17 @@ fn menu_action(
         (Changed<Interaction>, With<Button>),
     >,
     mut app_exit_events: EventWriter<AppExit>,
-    // mut menu_state: ResMut<NextState<MenuState>>,
-    // mut game_state: ResMut<NextState<GameState>>,
+    mut menu_state: ResMut<NextState<MenuState>>,
+    mut game_state: ResMut<NextState<MainGameState>>,
 ) {
     for (interaction, menu_button_action) in &interaction_query {
         if *interaction == Interaction::Pressed {
             match menu_button_action {
                 MenuButtonAction::Quit => app_exit_events.send(AppExit),
-                MenuButtonAction::Play => {}
+                MenuButtonAction::Play => {
+                    game_state.set(MainGameState::Game);
+                    menu_state.set(MenuState::Disabled);
+                }
             }
         }
     }

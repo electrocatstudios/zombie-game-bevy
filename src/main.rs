@@ -23,7 +23,10 @@ fn main() {
             ..default()
         }))
         .add_state::<MainGameState>()
-        .add_plugins(menu::MenuPlugin)
+        .add_plugins((
+            menu::MenuPlugin,
+            game::GamePlugin
+        ))
         .run();
 }
 
