@@ -16,6 +16,7 @@ impl Plugin for GamePlugin {
                 menu_return_check,
                 game_update,
                 zombie_mover,
+                zombie_checker,
                 player::player_mover,
                 player::track_mouse,
                 player::fire_controller,
@@ -55,42 +56,6 @@ fn game_setup(
     commands
         .spawn(Camera2dBundle::default())
         .insert(OnGameScreen);
-    
-    // Zombie
-    {
-        let texture_path = Path::new("images").join("zombie").join("zombie.png");
-        let texture_handle = asset_server.load(texture_path);
-        let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(200.0, 200.0), 4, 1, None, None);
-        let texture_atlas_handle = texture_atlases.add(texture_atlas);
-        let animation_indices = AnimationIndices { first: 0, last: 3 };
-        
-        let mut locations = Vec::<Vec2>::new();
-        locations.push(Vec2::new(-300.0, -200.0));
-        locations.push(Vec2::new(-350.0, 0.0)); 
-        locations.push(Vec2::new(-300.0, 200.0));
-        locations.push(Vec2::new(300.0, 200.0));
-        locations.push(Vec2::new(300.0, -200.0));
-        
-        commands.spawn((
-            SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle,
-                sprite: TextureAtlasSprite::new(animation_indices.first),
-                transform: Transform::from_xyz(locations[0].x, locations[0].y, 2.0).with_scale(Vec3::splat(0.5)),
-                ..default()
-            },
-            animation_indices,
-            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-        ))
-        .insert(Zombie{
-            loc: locations,
-            cur_loc: 1,
-            hit_box: Vec2::new(100.0,100.0),
-            health: 5
-        })
-        .insert(OnGameScreen);
-    
-    }
     
     player::create_player(&mut commands, &asset_server, &mut texture_atlases);
 
@@ -202,5 +167,68 @@ fn menu_return_check(
         game_state.set(MainGameState::Menu);
         menu_state.set(MenuState::Main);
         return;
+    }
+}
+
+fn zombie_checker(
+    mut commands: Commands,
+    zombies: Query<&Zombie>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+){
+    if zombies.is_empty() {
+        // Make a zombie
+        let texture_path = Path::new("images").join("zombie").join("zombie.png");
+        let texture_handle = asset_server.load(texture_path);
+        let texture_atlas =
+            TextureAtlas::from_grid(texture_handle, Vec2::new(200.0, 200.0), 4, 1, None, None);
+        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+        let animation_indices = AnimationIndices { first: 0, last: 3 };
+        
+        let mut locations = Vec::<Vec2>::new();
+        locations.push(Vec2::new(-300.0, -200.0));
+        locations.push(Vec2::new(-350.0, 0.0)); 
+        locations.push(Vec2::new(-300.0, 200.0));
+        locations.push(Vec2::new(300.0, 200.0));
+        locations.push(Vec2::new(300.0, -200.0));
+        
+        commands.spawn((
+            SpriteSheetBundle {
+                texture_atlas: texture_atlas_handle.clone(),
+                sprite: TextureAtlasSprite::new(animation_indices.first),
+                transform: Transform::from_xyz(locations[0].x, locations[0].y, 2.0).with_scale(Vec3::splat(0.5)),
+                ..default()
+            },
+            animation_indices,
+            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+        ))
+        .insert(Zombie{
+            loc: locations.clone(),
+            cur_loc: 1,
+            hit_box: Vec2::new(100.0,100.0),
+            health: 5
+        })
+        .insert(OnGameScreen);
+
+        let animation_indices = AnimationIndices { first: 0, last: 3 };
+        commands.spawn((
+            SpriteSheetBundle {
+                texture_atlas: texture_atlas_handle,
+                sprite: TextureAtlasSprite::new(animation_indices.first),
+                transform: Transform::from_xyz(locations[3].x, locations[3].y, 2.0).with_scale(Vec3::splat(0.5)),
+                ..default()
+            },
+            animation_indices,
+            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+        ))
+        .insert(Zombie{
+            loc: locations,
+            cur_loc: 4,
+            hit_box: Vec2::new(100.0,100.0),
+            health: 5
+        })
+        .insert(OnGameScreen);
+
+
     }
 }
