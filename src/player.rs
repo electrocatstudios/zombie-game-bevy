@@ -12,6 +12,7 @@ use crate::bullet::*;
 pub struct Player {
     loc: Vec2,
     mouse: Vec2,
+    hit_box: Vec2
 }
 
 pub fn create_player( 
@@ -39,6 +40,7 @@ pub fn create_player(
     .insert(Player{
         loc: Vec2::new(0.0,0.0),
         mouse: Vec2::new(0.0,0.0),
+        hit_box: Vec2::new(150.0,150.0)
     })
     .insert(OnGameScreen);
 }
@@ -127,12 +129,14 @@ pub fn fire_controller(
         commands.spawn((
                 SpriteBundle {
                     texture: texture_handle,
-                    transform: Transform::from_xyz(player.loc.x, player.loc.y, 1.0).with_scale(Vec3::splat(1.0)),
+                    transform: Transform::from_xyz(player.loc.x, player.loc.y, 2.0).with_scale(Vec3::splat(1.0)),
                     ..default()
                 },
             )) 
             .insert(Bullet{
-                angle: angle_to_target - (std::f32::consts::PI/2.0)
+                angle: angle_to_target - (std::f32::consts::PI/2.0),
+                hit_box: Vec2::new(10.0, 20.0),
+                damage: 1
             })
             .insert(OnGameScreen);
 

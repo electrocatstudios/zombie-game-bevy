@@ -1,7 +1,7 @@
 use bevy::{app::AppExit, prelude::*,sprite::MaterialMesh2dBundle}; 
 use std::path::Path;
 
-use super::{despawn_screen,MainGameState,menu::MenuState,player,bullet};
+use super::{despawn_screen,MainGameState,menu::MenuState,player,bullet,blood};
 use std::vec::Vec;
 
 pub struct GamePlugin;
@@ -20,6 +20,8 @@ impl Plugin for GamePlugin {
                 player::track_mouse,
                 player::fire_controller,
                 bullet::bullet_mover,
+                bullet::bullet_collision,
+                blood::update_blood_spatter,
             ).run_if(in_state(MainGameState::Game)))
             .add_systems(OnExit(MainGameState::Game), despawn_screen::<OnGameScreen>);
     }
@@ -38,9 +40,11 @@ pub struct AnimationIndices {
 pub struct AnimationTimer(pub Timer);
 
 #[derive(Component)]
-struct Zombie {
-    loc: Vec::<Vec2>,
-    cur_loc: usize
+pub struct Zombie {
+    pub loc: Vec::<Vec2>,
+    pub cur_loc: usize,
+    pub hit_box: Vec2,
+    pub health: i32
 }
 
 fn game_setup(
@@ -72,7 +76,7 @@ fn game_setup(
             SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 sprite: TextureAtlasSprite::new(animation_indices.first),
-                transform: Transform::from_xyz(locations[0].x, locations[0].y, 0.0).with_scale(Vec3::splat(0.5)),
+                transform: Transform::from_xyz(locations[0].x, locations[0].y, 2.0).with_scale(Vec3::splat(0.5)),
                 ..default()
             },
             animation_indices,
@@ -80,7 +84,9 @@ fn game_setup(
         ))
         .insert(Zombie{
             loc: locations,
-            cur_loc: 1
+            cur_loc: 1,
+            hit_box: Vec2::new(100.0,100.0),
+            health: 5
         })
         .insert(OnGameScreen);
     
