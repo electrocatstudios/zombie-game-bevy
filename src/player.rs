@@ -3,6 +3,8 @@ use bevy::input::mouse::MouseMotion;
 use std::vec;
 use std::path::Path;
 
+use super::GameDetails;
+
 use crate::{GAME_WIDTH,GAME_HEIGHT};
 use crate::game::*;
 use crate::utils::*;
@@ -38,7 +40,7 @@ pub fn create_player(
         AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
     ))
     .insert(Player{
-        loc: Vec2::new(0.0,0.0),
+        loc: Vec2::new(100.0,100.0),
         mouse: Vec2::new(0.0,0.0),
         hit_box: Vec2::new(150.0,150.0)
     })
@@ -54,6 +56,7 @@ pub fn player_mover(
         &mut Transform,
     )>,
     keys: Res<Input<KeyCode>>,
+    mut game_details: ResMut<GameDetails>
 ){
     if players.is_empty() {
         return;
@@ -74,11 +77,43 @@ pub fn player_mover(
         player.loc.x += PLAYER_MOVE_SPEED * time.delta_seconds();
     }
 
-    transform.translation.y = player.loc.y;
-    transform.translation.x = player.loc.x;
+    // Don't go out of bounds
+    if player.loc.x < 0.0 {
+        player.loc.x = 0.0;
+    }
+    if player.loc.y < 0.0 {
+        player.loc.y = 0.0;
+    }
 
+    if player.loc.x <= GAME_WIDTH / 2.0 {
+        transform.translation.x = player.loc.x - GAME_WIDTH/2.0;
+        game_details.offset_x = 0.0;
+    } else {
+        transform.translation.x = 0.0;
+        game_details.offset_x = player.loc.x - GAME_WIDTH/2.0;
+    }
+
+    if player.loc.y <= GAME_HEIGHT / 2.0 {
+        transform.translation.y = player.loc.y - GAME_HEIGHT/2.0;    
+        game_details.offset_y = 0.0;
+    } else {
+        transform.translation.y = 0.0;
+        game_details.offset_y = player.loc.y - GAME_HEIGHT/2.0;
+        
+    }
+    // transform.translation.y = player.loc.y;
+
+    // else if player.loc.y > (GAME_HEIGHT * (game_details.height-1) as f32) + GAME_HEIGHT/2.0 {
+    //     transform.translation.y = player.loc.y - (GAME_HEIGHT * (game_details.height-1) as f32);
+
+    // } else {
+    //     // Calculate the offset y
+
+    // }
+
+    
     // Rotate to face the mouse cursor
-    let direction = player.mouse - player.loc; 
+    let direction = player.mouse - transform.translation.truncate(); 
     let mut angle_to_target =  normalize_angle(
         direction.y.atan2(direction.x)
     );
@@ -106,17 +141,18 @@ pub fn fire_controller(
     mut commands: Commands,
     buttons: Res<Input<MouseButton>>,
     asset_server: Res<AssetServer>,
-    mut players: Query<&mut Player>
+    mut players: Query<(&mut Player, &Transform)>,
+    game_details: Res<GameDetails>,
 ){
     if players.is_empty() {
         return;
     }
 
-    let player = players.single();
+    let (player,transform) = players.single();
 
     if buttons.just_pressed(MouseButton::Left) {
         // Get player location and spawn a new bullet
-        let direction = player.loc - player.mouse; 
+        let direction = transform.translation.truncate() - player.mouse; 
         let mut angle_to_target =  normalize_angle(
             direction.y.atan2(direction.x)
         );
@@ -129,11 +165,16 @@ pub fn fire_controller(
         commands.spawn((
                 SpriteBundle {
                     texture: texture_handle,
-                    transform: Transform::from_xyz(player.loc.x, player.loc.y, 2.0).with_scale(Vec3::splat(1.0)),
+                    transform: Transform::from_xyz(
+                        player.loc.x-game_details.offset_x - (GAME_WIDTH/2.0), 
+                        player.loc.y-game_details.offset_y - (GAME_HEIGHT/2.0)
+                        , 2.0
+                    ).with_scale(Vec3::splat(1.0)),
                     ..default()
                 },
             )) 
             .insert(Bullet{
+                loc: Vec2::new(player.loc.x, player.loc.y),
                 angle: angle_to_target - (std::f32::consts::PI/2.0),
                 hit_box: Vec2::new(10.0, 20.0),
                 damage: 1

@@ -18,6 +18,14 @@ pub enum MainGameState {
     Game,
 }
 
+#[derive(Resource)]
+pub struct GameDetails {
+    pub width: u32,
+    pub height: u32,
+    pub offset_x: f32,
+    pub offset_y: f32,
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -30,6 +38,7 @@ fn main() {
             ..default()
         }))
         .add_state::<MainGameState>()
+        .insert_resource(GameDetails{width: 3, height: 3,offset_x:0.0,offset_y:0.0})
         .add_plugins((
             menu::MenuPlugin,
             game::GamePlugin
