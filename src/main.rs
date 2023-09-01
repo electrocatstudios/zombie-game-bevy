@@ -10,6 +10,8 @@ mod blood;
 
 pub const GAME_WIDTH: f32 = 1280.0;
 pub const GAME_HEIGHT: f32 = 720.0;
+pub const BUFFER_WIDTH: f32 = 50.0;
+pub const BUFFER_HEIGHT: f32 = 50.0;
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, States, Default)]
 pub enum MainGameState {

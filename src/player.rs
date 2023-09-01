@@ -5,7 +5,7 @@ use std::path::Path;
 
 use super::GameDetails;
 
-use crate::{GAME_WIDTH,GAME_HEIGHT};
+use crate::{GAME_WIDTH,GAME_HEIGHT,BUFFER_WIDTH,BUFFER_HEIGHT};
 use crate::game::*;
 use crate::utils::*;
 use crate::bullet::*;
@@ -33,7 +33,7 @@ pub fn create_player(
         SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
             sprite: TextureAtlasSprite::new(animation_indices.first),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(0.5)),
+            transform: Transform::from_xyz(100.0, 100.0, 3.0).with_scale(Vec3::splat(0.5)),
             ..default()
         },
         animation_indices,
@@ -78,39 +78,44 @@ pub fn player_mover(
     }
 
     // Don't go out of bounds
-    if player.loc.x < 0.0 {
-        player.loc.x = 0.0;
+    if player.loc.x < BUFFER_WIDTH {
+        player.loc.x = BUFFER_WIDTH;
     }
-    if player.loc.y < 0.0 {
-        player.loc.y = 0.0;
+    if player.loc.y < BUFFER_HEIGHT {
+        player.loc.y = BUFFER_HEIGHT;
     }
 
+    let max_x = game_details.width as f32 * GAME_WIDTH;
     if player.loc.x <= GAME_WIDTH / 2.0 {
         transform.translation.x = player.loc.x - GAME_WIDTH/2.0;
         game_details.offset_x = 0.0;
+    } else if player.loc.x >= max_x - (GAME_WIDTH/2.0) {
+        transform.translation.x = player.loc.x - (max_x - (GAME_WIDTH/2.0));
+        game_details.offset_x = max_x - GAME_WIDTH;
     } else {
         transform.translation.x = 0.0;
         game_details.offset_x = player.loc.x - GAME_WIDTH/2.0;
     }
 
+    if player.loc.x >= max_x - BUFFER_WIDTH{
+        player.loc.x = max_x - BUFFER_WIDTH;
+    }
+
+    let max_y = game_details.height as f32 * GAME_HEIGHT;
     if player.loc.y <= GAME_HEIGHT / 2.0 {
         transform.translation.y = player.loc.y - GAME_HEIGHT/2.0;    
         game_details.offset_y = 0.0;
+    } else if player.loc.y >= max_y - (GAME_HEIGHT/2.0) {
+        transform.translation.y = player.loc.y - (max_y - (GAME_HEIGHT/2.0));
+        game_details.offset_y = max_y - GAME_HEIGHT;
     } else {
         transform.translation.y = 0.0;
         game_details.offset_y = player.loc.y - GAME_HEIGHT/2.0;
-        
     }
-    // transform.translation.y = player.loc.y;
 
-    // else if player.loc.y > (GAME_HEIGHT * (game_details.height-1) as f32) + GAME_HEIGHT/2.0 {
-    //     transform.translation.y = player.loc.y - (GAME_HEIGHT * (game_details.height-1) as f32);
-
-    // } else {
-    //     // Calculate the offset y
-
-    // }
-
+    if player.loc.y > max_y - BUFFER_HEIGHT {
+        player.loc.y = max_y - BUFFER_HEIGHT;
+    }
     
     // Rotate to face the mouse cursor
     let direction = player.mouse - transform.translation.truncate(); 

@@ -48,8 +48,6 @@ pub struct AnimationTimer(pub Timer);
 struct BackgroundTile{
     x: u32,
     y: u32,
-    offset_x: i32,
-    offset_y: i32
 }
 
 #[derive(Component)]
@@ -65,6 +63,7 @@ fn game_setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    game_details: Res<GameDetails>
 ){
     commands
         .spawn(Camera2dBundle::default())
@@ -74,25 +73,26 @@ fn game_setup(
 
     // Scenery and Background
     {
-        let texture_path = Path::new("images").join("scenery").join("street_scene.png");
-        let texture_handle = asset_server.load(texture_path);
-        
-        commands.spawn((
-            SpriteBundle {
-                texture: texture_handle,
-                transform: Transform::from_xyz(0.0, 0.0, -1.0).with_scale(Vec3::splat(1.0)),
-                ..default()
-            },
-        ))
-        .insert(BackgroundTile{
-            x: 0,
-            y: 0,
-            offset_x: 0,
-            offset_y: 0
-        })
-        .insert(OnGameScreen);    
+        for x in 0..game_details.width {
+            for y in 0..game_details.height {
+                let texture_path = Path::new("images").join("scenery").join("street_scene.png");
+                let texture_handle = asset_server.load(texture_path);
+                
+                commands.spawn((
+                    SpriteBundle {
+                        texture: texture_handle,
+                        transform: Transform::from_xyz(x as f32 * GAME_WIDTH, y as f32 * GAME_HEIGHT, -1.0).with_scale(Vec3::splat(1.0)),
+                        ..default()
+                    },
+                ))
+                .insert(BackgroundTile{
+                    x: x,
+                    y: y,
+                })
+                .insert(OnGameScreen);    
+            }
+        }   
     }
-
 }
 
 fn game_update(
@@ -268,14 +268,10 @@ fn zombie_checker(
 fn background_mapper(
     mut _commands: Commands,
     game_details: Res<GameDetails>,
-    player: Query<(&Player, &Transform), (Without<BackgroundTile>,With<Player>)>,
     mut backgrounds: Query<(&BackgroundTile, &mut Transform), (Without<Player>,With<BackgroundTile>)>,
 ){
-    // if player.is_empty() {
-    //     return;
-    // }
-    for (_, mut transform) in backgrounds.iter_mut() {
-        transform.translation.x = -game_details.offset_x;
-        transform.translation.y = -game_details.offset_y;
+    for (tile, mut transform) in backgrounds.iter_mut() {
+        transform.translation.x = (tile.x as f32 * GAME_WIDTH) - game_details.offset_x;
+        transform.translation.y = (tile.y as f32 * GAME_HEIGHT) - game_details.offset_y;
     }
 }
