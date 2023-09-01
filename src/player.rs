@@ -1,6 +1,4 @@
-use bevy::{app::AppExit, prelude::*};
-use bevy::input::mouse::MouseMotion;
-use std::vec;
+use bevy::prelude::*;
 use std::path::Path;
 
 use super::GameDetails;
@@ -14,7 +12,7 @@ use crate::bullet::*;
 pub struct Player {
     loc: Vec2,
     mouse: Vec2,
-    hit_box: Vec2
+    _hit_box: Vec2
 }
 
 pub fn create_player( 
@@ -42,7 +40,7 @@ pub fn create_player(
     .insert(Player{
         loc: Vec2::new(100.0,100.0),
         mouse: Vec2::new(0.0,0.0),
-        hit_box: Vec2::new(150.0,150.0)
+        _hit_box: Vec2::new(150.0,150.0)
     })
     .insert(OnGameScreen);
 }
@@ -119,7 +117,7 @@ pub fn player_mover(
     
     // Rotate to face the mouse cursor
     let direction = player.mouse - transform.translation.truncate(); 
-    let mut angle_to_target =  normalize_angle(
+    let angle_to_target =  normalize_angle(
         direction.y.atan2(direction.x)
     );
 
@@ -146,7 +144,7 @@ pub fn fire_controller(
     mut commands: Commands,
     buttons: Res<Input<MouseButton>>,
     asset_server: Res<AssetServer>,
-    mut players: Query<(&mut Player, &Transform)>,
+    players: Query<(&Player, &Transform)>,
     game_details: Res<GameDetails>,
 ){
     if players.is_empty() {
@@ -158,7 +156,7 @@ pub fn fire_controller(
     if buttons.just_pressed(MouseButton::Left) {
         // Get player location and spawn a new bullet
         let direction = transform.translation.truncate() - player.mouse; 
-        let mut angle_to_target =  normalize_angle(
+        let angle_to_target =  normalize_angle(
             direction.y.atan2(direction.x)
         );
 

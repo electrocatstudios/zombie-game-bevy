@@ -1,4 +1,4 @@
-use bevy::{app::AppExit, prelude::*};
+use bevy::prelude::*;
 use bevy::sprite::collide_aabb::collide;
 use rand::Rng; 
 
@@ -44,13 +44,13 @@ pub fn bullet_mover(
 pub fn bullet_collision(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut bullets: Query<(Entity, &mut Bullet, &mut Transform,), (With<Bullet>, Without<Zombie>)>,
+    bullets: Query<(Entity, &Bullet, &Transform,), (With<Bullet>, Without<Zombie>)>,
     mut zombies: Query<(Entity, &mut Zombie, &mut Transform), (With<Zombie>, Without<Bullet>)>,
     game_details: Res<GameDetails>
 ){
     let mut rng = rand::thread_rng();
 
-    for (bullet_entity, mut bullet, bullet_transform) in bullets.iter_mut() {
+    for (bullet_entity, bullet, bullet_transform) in bullets.iter() {
         for (zombie_entity, mut zombie, zombie_transform) in zombies.iter_mut() {
             if collide(bullet_transform.translation, bullet.hit_box, zombie_transform.translation, zombie.hit_box).is_some() {
                 let cur_pos = Vec2::new(zombie.pos.x,zombie.pos.y);
