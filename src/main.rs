@@ -7,6 +7,7 @@ mod player;
 mod utils;
 mod bullet;
 mod blood; 
+mod zombie;
 
 pub const GAME_WIDTH: f32 = 1280.0;
 pub const GAME_HEIGHT: f32 = 720.0;

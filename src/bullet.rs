@@ -3,7 +3,7 @@ use bevy::sprite::collide_aabb::collide;
 use rand::Rng; 
 
 use crate::{GAME_WIDTH,GAME_HEIGHT,GameDetails};
-use crate::game::Zombie;
+use crate::zombie::Zombie;
 use crate::blood;
 
 #[derive(Component)]
@@ -33,10 +33,10 @@ pub fn bullet_mover(
         transform.translation.x = bullet.loc.x - game_details.offset_x - (GAME_WIDTH/2.0);
         transform.translation.y = bullet.loc.y - game_details.offset_y - (GAME_HEIGHT/2.0);
 
-        if transform.translation.x < -(GAME_WIDTH / 2.0) || transform.translation.x > (GAME_WIDTH / 2.0)
-            || transform.translation.y < -(GAME_HEIGHT/2.0) || transform.translation.y > (GAME_HEIGHT  / 2.0) {
+        // Catch-all to make sure bullet doesn't live forever, but it should hit an object, ideally
+        if bullet.loc.x < 0.0 || bullet.loc.x >= GAME_WIDTH * game_details.width as f32 
+            || bullet.loc.y < 0.0 || bullet.loc.y >= GAME_HEIGHT * game_details.height as f32 {
             commands.entity(entity).despawn();
-            // println!("Bullet out of bounds");
         }
     }
 }
@@ -57,7 +57,13 @@ pub fn bullet_collision(
                 
                 for _ in 0..rng.gen_range(2..4){
                     let angle_diff = rng.gen_range(-std::f32::consts::PI/3.0..std::f32::consts::PI/3.0);
-                    blood::add_blood_spatter(&mut commands, &game_details, &asset_server, cur_pos, bullet.angle - (std::f32::consts::PI/2.0) + angle_diff);
+                    blood::add_blood_spatter(
+                        &mut commands,
+                        &game_details,
+                        &asset_server,
+                        cur_pos,
+                        bullet.angle - (std::f32::consts::PI/2.0) + angle_diff
+                    );
                 }
                 
                 zombie.health -= bullet.damage;
