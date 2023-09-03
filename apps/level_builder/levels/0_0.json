@@ -1,0 +1,19 @@
+{
+    "version":"0.1.0",
+    "description": "Start tile",
+    "x": 0,
+    "y": 0,
+    "objects": [{
+        "description": "car",
+        "location": {"x": 500, "y": 500},
+        "hit_box": {"x": 450, "y": 800},
+        "scale": 1
+    },{
+        "description": "barbed_wire",
+        "location": {"x":0, "y": 650},
+        "hit_box": {"x": 200, "y": 50},
+        "scale": 1
+    }],
+    "enemies": [],
+    "characters": []
+}

@@ -8,3 +8,7 @@ pub fn normalize_angle(angle: f32) -> f32 {
         angle
     }
 }
+
+// pub fn check_position_move(start: Vec2, next_move: Vec2, objects: Query ) -> Vec2 {
+
+// }
